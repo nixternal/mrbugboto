@@ -17,35 +17,20 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 ################################################################################
-from waveapi import events
-from waveapi import model
-from waveapi import robot
-from waveapi import document
-from waveapi.ops import OpBuilder
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from optparse import OptionParser
 from trackers import *
-
-import re
-
-def OnBlipSubmitted(properties, context):
-    blip = context.GetBlipById(properties['blipId'])
-    m = re.match('!(.+)#(.+)', blip.GetDocument().GetText())
-    try:
-	bug = runTracker(m.group(1), m.group(2))
-    except AttributeError:
-	return
-    builder = OpBuilder(context)
-    blip.GetDocument().SetText(" ")
-    builder.DocumentAppendMarkup(blip.waveId, blip.waveletId, properties['blipId'], bug)
-
-def OnRobotAdded(properties, context):
-    context.GetRootWavelet().CreateBlip().GetDocument().SetText('Domo arigato, Mr. Bugboto')
-
-if __name__ == '__main__':
-    myRobot = robot.Robot('mrbugboto',
-	    image_url='http://www.mrbugboto.appspot.com/assets/icon.png',
-	    version='1',
-	    profile_url='http://www.mrbugboto.appspont.com')
-    myRobot.RegisterHandler(events.BLIP_SUBMITTED, OnBlipSubmitted)
-    myRobot.RegisterHandler(events.WAVELET_SELF_ADDED, OnRobotAdded)
-    myRobot.Run()
+parser = OptionParser(usage="Usage: %prog -t arg1 -n arg2")
+parser.add_option("-t", "--trigger", action="store", type="string", dest="trigger",
+	default="lp", help="Trigger for the bug tracker")
+parser.add_option("-n", "--number", action="store", type="string", dest="number",
+	default="100", help="Number of the bug to query in the bug tracker")
+(options, args) = parser.parse_args()
+bug = runTracker(options.trigger, options.number)
+bug = bug.replace("<br />", "\n").replace("<b>", "").replace("</b>", "").replace("<pre>", "").replace("</pre>", "").strip().splitlines()
+for x in bug:
+    x = x.split(':')
+    x[0] = x[0].strip() + ':'
+    x = '\033[1m' + x[0].ljust(20) + '\033[0;0m' + x[1].strip()
+    print x
