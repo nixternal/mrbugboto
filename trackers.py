@@ -1,5 +1,46 @@
-import urllib2
 import email.FeedParser
+import re
+import urllib2
+import xml.dom.minidom as minidom
+from htmlentitydefs import entitydefs
+
+entre = re.compile('&(\S*?);')
+def _getnodetxt(node):
+    L = []
+    for childnode in node.childNodes:
+	if childnode.nodeType == childnode.TEXT_NODE:
+	    L.append(childnode.data)
+    val = ''.join(L)
+    if node.hasAttribute('encoding'):
+	encoding = node.getAttribute('encoding')
+	if encoding == 'base64':
+	    try:
+		val = val.decode('base64')
+	    except:
+		val = 'Cannot convert bug data from base64.'
+    while entre.search(val):
+	entity = entre.search(val).group(1)
+	if entity in entitydefs:
+	    val = entre.sub(entitydefs[entity], val)
+	else:
+	    val = entre.sub('?', val)
+    return val
+
+def outputToHTML(bug):
+    html = "<br /><br /><br />"
+    html += "<b>Bug Number:</b><pre>   %s</pre><br />" % bug[0]
+    html += "<b>Product:</b><pre>       %s</pre><br />" % bug[1]
+    if bug[2]:
+	html += "<b>Component:</b><pre>    %s</pre><br />" % bug[2]
+    html += "<b>Summary:</b><pre>       %s</pre><br />" % bug[3]
+    html += "<b>Importance:</b><pre>    %s</pre><br />" % bug[4]
+    html += "<b>Status:</b><pre>            %s</pre><br />" % bug[5]
+    if bug[6]:
+	html += "<b>Assigned To:</b><pre>  %s</pre><br />" % bug[6]
+    else:
+	html += "<b>Assigned To:</b><pre>  Nobody</pre><br />"
+    html += "<b>Bug URL:</b><pre>         %s</pre>" % bug[7]
+    return html
 
 class BugTrackerError(Exception):
     pass
@@ -21,6 +62,41 @@ class BugTracker:
 
     def get_tracker(self, url):
 	raise BugTrackerError("Bugtracker class does not implement get_tracker")
+
+class Bugzilla(BugTracker):
+    def get_bug(self, id):
+	url = '%s/xml.cgi?id=%s' % (self.url, id)
+	try:
+	    bugxml = urllib2.urlopen(url).read()
+	    bugdom = minidom.parseString(bugxml)
+	except Exception, e:
+	    raise BugTrackerError, 'Could not parse XML returned by %s: %s' % (url, e)
+	bug = bugdom.getElementsByTagName('bug')[0]
+	if bug.hasAttribute('error'):
+	    errortxt = bug.getAttribute('error')
+	    if errortxt == 'NotFound':
+		raise BugNotFoundError
+	    raise BugTrackerError, 'Error getting %s bug #%s: %s' % (self.name, id, errortxt)
+	try:
+	    title = _getnodetxt(bug.getElementsByTagName('short_desc')[0])
+	    status = _getnodetxt(bug.getElementsByTagName('bug_status')[0])
+	    try:
+		status += ": " + _getnodetxt(bug.getElementsByTagName('resolution')[0])
+	    except:
+		pass
+	    product = _getnodetxt(bug.getElementsByTagName('product')[0])
+	    component = _getnodetxt(bug.getElementsByTagName('component')[0])
+	    severity = _getnodetxt(bug.getElementsByTagName('bug_severity')[0])
+	    assignee = '(unavailable)'
+	    try:
+		assignee = _getnodetxt(bug.getElementsByTagName('assigned_to')[0])
+	    except:
+		pass
+	except Exception, e:
+	    raise BugTrackerError, 'Could not parse XML returned by %s bugzilla: %s' % (self.name, e)
+	bug = [id, product, component, title, severity, status, assignee, url.replace('xml', 'show_bug')]
+	html = outputToHTML(bug)
+	return html
 
 class Launchpad(BugTracker):
     def _parse(self, task):
@@ -81,16 +157,14 @@ class Launchpad(BugTracker):
 	except Exception, e:
 	    raise BugTrackerError, 'Could not parse data returned by %s: %s' % (self.description, e)
 	t = taskdata['task']
+	product = t
+	component = None
 	if '(' in t:
-	    t = t[:t.find('(') -1]
-	html = "<br /><br /><br />"
-	html += "<b>Bug Number:</b><pre>   %s</pre><br />" % id
-	html += "<b>Component:</b><pre>    %s</pre><br />" % t
-	html += "<b>Summary:</b><pre>       %s</pre><br />" % bugdata['title']
-	html += "<b>Importance:</b><pre>    %s</pre><br />" % taskdata['importance']
-	html += "<b>Status:</b><pre>            %s</pre><br />" % taskdata['status']
-	html += "<b>Assigned to:</b><pre>  %s</pre><br />" % taskdata['assignee']
-	html += "<b>Bug URL:</b><pre>         %s</pre>" % bug_url
+	    component = t[:t.find('(') -1]
+	    product = product.replace(component, "").replace("(", "").strip(')')
+	bug = [id, product, component, bugdata['title'], taskdata['importance'],
+		taskdata['status'], taskdata['assignee'], bug_url]
+	html = outputToHTML(bug)
 	return html
 
 TRACKERS = {
@@ -126,8 +200,8 @@ def runTracker(trigger, id):
     bug = bug.get_bug(id)
     return bug
 
-#if __name__ == '__main__':
-#    bug = runTracker('lp', '442079')
-#    for x in bug:
-#	if x:
-#	    print x
+if __name__ == '__main__':
+    bug = runTracker('gnome', '589153')
+    #bug = runTracker('kde', '209744')
+    #bug = runTracker('lp', '442079')
+    print bug

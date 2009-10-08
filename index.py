@@ -46,6 +46,17 @@ print """<!DOCTYPE HTML SYSTEM "about:legacy-compat">
 	    </div>
 	</div>
 	<div class="row"><div class="column grid">&nbsp;</div></div>
+	<div id="source" class="row">
+	    <div id="sourcetitle" class="column grid"><span>Source code</span></div>
+	    <div class="column grid">
+		<span>Mr. Bugboto is stored at <a
+		href="http://code.google.com/p/mrbugboto">http://code.google.com/p/mrbugboto</a>,
+		and is licensed under the <a
+		href="http://www.gnu.org/licenses/gpl-3.0.txt">GPL Version
+		3</a>.</span><br /><br />
+	    </div>
+	</div>
+	<div class="row"><div class="column grid">&nbsp;</div></div>
 	<div id="footer" class="row"><div class="column grid">
 		<p>Copyright &copy; 2009 by <a
 		    href="http://www.nixternal.com">Richard A. Johnson</a>
