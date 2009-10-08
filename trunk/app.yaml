@@ -8,3 +8,5 @@ handlers:
   script: mrbugboto.py
 - url: /assets
   static_dir: assets
+- url: /.*
+  script: index.py
