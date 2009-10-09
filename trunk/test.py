@@ -28,9 +28,10 @@ parser.add_option("-n", "--number", action="store", type="string", dest="number"
 	default="100", help="Number of the bug to query in the bug tracker")
 (options, args) = parser.parse_args()
 bug = runTracker(options.trigger, options.number)
-bug = bug.replace("<br />", "\n").replace("<b>", "").replace("</b>", "").replace("<pre>", "").replace("</pre>", "").strip().splitlines()
+bug = bug.replace("<br />", "\n").replace("<b>", "").replace("</b>", "").replace("<pre>", "").replace("</pre>", "").replace("://", ";//").strip().splitlines()
+print bug
 for x in bug:
     x = x.split(':')
     x[0] = x[0].strip() + ':'
-    x = '\033[1m' + x[0].ljust(20) + '\033[0;0m' + x[1].strip()
+    x = '\033[1m' + x[0].ljust(20) + '\033[0;0m' + x[1].replace(";//", "://").strip()
     print x

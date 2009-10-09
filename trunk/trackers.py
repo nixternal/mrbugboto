@@ -1,27 +1,11 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-################################################################################
-#  Copyright (C) 2009 Richard A. Johnson <nixternal@gmail.com>                 #
-#                                                                              #
-#  This program is free software: you can redistribute it and/or modify        #
-#  it under the terms of the GNU General Public License as published by        #
-#  the Free Software Foundation, either version 3 of the License, or           #
-#  (at your option) any later version.                                         #
-#                                                                              #
-#  This program is distributed in the hope that it will be useful,             #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of              #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               #
-#  GNU General Public License for more details.                                #
-#                                                                              #
-#  You should have received a copy of the GNU General Public License           #
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
-################################################################################
 import email.FeedParser
 import re
 import urllib2
 import xml.dom.minidom as minidom
+
 from htmlentitydefs import entitydefs
+
+from tracker_list import TRACKERS
 
 entre = re.compile('&(\S*?);')
 def _getnodetxt(node):
@@ -45,21 +29,19 @@ def _getnodetxt(node):
 	    val = entre.sub('?', val)
     return val
 
-def outputToHTML(bug):
-    html = "<br /><br /><br />"
-    html += "<b>Bug Number:</b><pre>   %s</pre><br />" % bug[0]
-    html += "<b>Product:</b><pre>       %s</pre><br />" % bug[1]
-    if bug[2]:
-	html += "<b>Component:</b><pre>    %s</pre><br />" % bug[2]
-    html += "<b>Summary:</b><pre>       %s</pre><br />" % bug[3]
-    html += "<b>Importance:</b><pre>    %s</pre><br />" % bug[4]
-    html += "<b>Status:</b><pre>            %s</pre><br />" % bug[5]
-    if bug[6]:
-	html += "<b>Assigned To:</b><pre>  %s</pre><br />" % bug[6]
-    else:
-	html += "<b>Assigned To:</b><pre>  Nobody</pre><br />"
-    html += "<b>Bug URL:</b><pre>         %s</pre>" % bug[7]
-    return html
+def pretifyOutput(bug):
+    # TODO: As soon as the wave supports some better printing, this needs to
+    # get fixed.
+    text = '<br /><br /><br />'
+    text += '<pre><b>Bug Number:</b>     %s</pre><br />' % bug[0].strip()
+    text += '<pre><b>Product:</b>            %s</pre><br />' % bug[1].strip().capitalize()
+    text += '<pre><b>Component:</b>      %s</pre><br />' % bug[2].strip()
+    text += '<pre><b>Summary:</b>         %s</pre><br />' % bug[3].decode('utf-8').strip()
+    text += '<pre><b>Importance:</b>      %s</pre><br />' % bug[4].strip()
+    text += '<pre><b>Status:</b>              %s</pre><br />' % bug[5].strip()
+    text += '<pre><b>Assigned To:</b>    %s</pre><br />' % bug[6].decode('utf-8').strip()
+    text += '<pre><b>Bug URL:</b>          %s</pre>' % bug[7].strip()
+    return text
 
 class BugTrackerError(Exception):
     pass
@@ -89,13 +71,16 @@ class Bugzilla(BugTracker):
 	    bugxml = urllib2.urlopen(url).read()
 	    bugdom = minidom.parseString(bugxml)
 	except Exception, e:
-	    raise BugTrackerError, 'Could not parse XML returned by %s: %s' % (url, e)
+	    return "<b>Could not parse XML returned by %s:</b> %s" % (url, e)
+	    #raise BugTrackerError, 'Could not parse XML returned by %s: %s' % (url, e)
 	bug = bugdom.getElementsByTagName('bug')[0]
 	if bug.hasAttribute('error'):
 	    errortxt = bug.getAttribute('error')
 	    if errortxt == 'NotFound':
-		raise BugNotFoundError
-	    raise BugTrackerError, 'Error getting %s bug #%s: %s' % (self.name, id, errortxt)
+		return "<b>Bug not found:</b> %s" % url.replace("xml", "show_bug")
+		#raise BugNotFoundError
+	    return "<b>Error getting</b> %s <b>bug #</b>%s: %s" % (self.name, id, errortxt)
+	    #raise BugTrackerError, 'Error getting %s bug #%s: %s' % (self.name, id, errortxt)
 	try:
 	    title = _getnodetxt(bug.getElementsByTagName('short_desc')[0])
 	    status = _getnodetxt(bug.getElementsByTagName('bug_status')[0])
@@ -112,9 +97,10 @@ class Bugzilla(BugTracker):
 	    except:
 		pass
 	except Exception, e:
-	    raise BugTrackerError, 'Could not parse XML returned by %s bugzilla: %s' % (self.name, e)
+	    return "<b>Could not parse XML returned by</b> %s <b>bugzilla:</b> %s" % (self.name, e)
+	    #raise BugTrackerError, 'Could not parse XML returned by %s bugzilla: %s' % (self.name, e)
 	bug = [id, product, component, title, severity, status, assignee, url.replace('xml', 'show_bug')]
-	html = outputToHTML(bug)
+	html = pretifyOutput(bug)
 	return html
 
 class Launchpad(BugTracker):
@@ -154,15 +140,19 @@ class Launchpad(BugTracker):
 	try:
 	    bugpage = urllib2.urlopen('%s/+text' % bug_url)
 	except Exception, e:
-	    raise BugTrackerError, 'Could not open %s: %s' % (bug_url, e)
+	    return "<b>Unable to open </b>%s<b>. Please try again shortly.</b>" % bug_url
+	    #raise BugTrackerError, 'Could not open %s: %s' % (bug_url, e)
 	if bugpage.geturl().endswith('+login'):
-	    raise BugTrackerError, "This bug is private."
+	    return "<b>This bug is private:</b> %s" % bug_url
+	    #raise BugTrackerError, "This bug is private."
 	try:
 	    bugdata = bugpage.read()
 	except Exception, e:
 	    if '404' in str(e):
-		raise BugNotFoundError
-	    raise BugTrackerError, 'Could not parse data returned by %s: %s' % (self.description, e)
+		return "<b>404 Error:</b> %s" % bug_url
+		#raise BugNotFoundError
+	    return "<b>Could not parse data returned by %s:</b> %s" % (self.description, e)
+	    #raise BugTrackerError, 'Could not parse data returned by %s: %s' % (self.description, e)
 	try:
 	    data = bugdata.split('\n\n')
 	    bugdata = data[0]
@@ -174,7 +164,8 @@ class Launchpad(BugTracker):
 	    taskdata.sort(self._sort)
 	    taskdata = taskdata[-1]
 	except Exception, e:
-	    raise BugTrackerError, 'Could not parse data returned by %s: %s' % (self.description, e)
+	    return "<b>Could not parse data returned by %s:</b> %s" % (self.description, e)
+	    #raise BugTrackerError, 'Could not parse data returned by %s: %s' % (self.description, e)
 	t = taskdata['task']
 	product = t
 	component = None
@@ -183,21 +174,15 @@ class Launchpad(BugTracker):
 	    product = product.replace(component, "").replace("(", "").strip(')')
 	bug = [id, product, component, bugdata['title'], taskdata['importance'],
 		taskdata['status'], taskdata['assignee'], bug_url]
-	html = outputToHTML(bug)
+	html = pretifyOutput(bug)
 	return html
-
-TRACKERS = {
-	'lp': ('Launchpad', 'https://launchpad.net', 'Bug tracker used for various open source projects, including Ubuntu'),
-	'kde': ('Bugzilla', 'https://bugs.kde.org', 'Bug tracker for the KDE project'),
-	'gnome': ('Bugzilla', 'https://bugs.gnome.org', 'Bug tracker for the GNOME project'),
-	'deb': ('Debian', 'http://www.debian.org/Bugs', 'Bug tracker for the Debian project'),
-}
 
 def setupTracker(trigger):
     try:
 	tracker = TRACKERS[trigger]
     except KeyError:
-	raise BugTrackerNotAvailable("%s is not a registered bug tracker" % trigger)
+	return "<b>%s</b> is not a registered bug tracker." % trigger
+	#raise BugTrackerNotAvailable("%s is not a registered bug tracker" % trigger)
     url = tracker[1]
     desc = tracker[2]
     tracker = tracker[0]
@@ -210,11 +195,13 @@ def setupTracker(trigger):
     elif tracker == 'Debian':
 	bug = Debian()
 	bug.__init__(tracker, url, desc)
-    else:
-	raise BugTrackerNotAvailable("%s is not a valid trigger" % trigger)
     return bug
 
 def runTracker(trigger, id):
     bug = setupTracker(trigger)
-    bug = bug.get_bug(id)
+    try:
+	if "Invalid trigger" in bug:
+	    pass
+    except TypeError:
+	bug = bug.get_bug(id)
     return bug
