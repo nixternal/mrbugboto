@@ -21,6 +21,7 @@ from waveapi import model
 from waveapi import robot
 
 from trackers import *
+from version import *
 
 import re
 
@@ -38,12 +39,12 @@ def OnBlipSubmitted(properties, context):
 def OnRobotAdded(properties, context):
     blip = context.GetRootWavelet().CreateBlip().GetDocument()
     blip.AnnotateDocument('style/fontFamily', 'monospace')
-    blip.AppendText('Dōmo arigatō, Mr. Bugboto!\nPlease review http://mrbugboto.appspot.com for information on how to use this robot.')
+    blip.AppendText('Dōmo arigatō, Mr. Bugboto! Version %s\nPlease review http://mrbugboto.appspot.com for information on how to use this robot.' % VERSION)
 
 if __name__ == '__main__':
     myRobot = robot.Robot('mrbugboto',
 	    image_url='http://www.mrbugboto.appspot.com/assets/icon.png',
-	    version='1',
+	    version=VERSION,
 	    profile_url='http://www.mrbugboto.appspot.com')
     myRobot.RegisterHandler(events.BLIP_SUBMITTED, OnBlipSubmitted)
     myRobot.RegisterHandler(events.WAVELET_SELF_ADDED, OnRobotAdded)

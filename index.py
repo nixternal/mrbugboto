@@ -15,6 +15,7 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 ################################################################################
+from version import *
 print """<!doctype html "about:legacy-compat">
 <html lang="en">
     <head>
@@ -26,15 +27,16 @@ print """<!doctype html "about:legacy-compat">
     </head>
     <body>
 	<div id="header" class="row"><div class="column grid">
-	    <a href="http://mrbugboto.appspot.com"><img src="assets/icon.png" /></a>
+	    <a href="http://mrbugboto.appspot.com"><img src="assets/logo.png" /></a>
 	    <h3>Querying bug trackers via the Google Wave...Dōmo arigatō!</h3>
         </div></div>
 	<div class="row"><div class="column grid">&nbsp;</div></div>
 	<div class="row section_wrapper">
 	    <div class="column grid title_wrapper"><p>Introduction</p></div>
 	    <div class="column grid">
-		<p>Mr. Bugboto, a robot for <a href="http://wave.google.com">Google Wave</a>, is a query tool for various open source bug trackers.</p>
-	    </div>
+		<p>Mr. Bugboto, a robot for <a href="http://wave.google.com">Google Wave</a>, is a query tool for various open source bug trackers.</p>"""
+print '		<p>Current version: <strong>%s</strong></p>' % VERSION
+print """   </div>
 	</div>
 	<div class="row"><div class="column grid">&nbsp;</div></div>
 	<div class="row section_wrapper">
