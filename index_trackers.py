@@ -15,50 +15,60 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 ################################################################################
-print """<!doctype html "about:legacy-compat">
+from tracker_list import TRACKERS
+print """<!doctype html system "about:legacy-compat">
 <html lang="en">
     <head>
-	<meta charset=utf-8>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
 	<meta name="description" content="Information about Google Wave Robot Mr. Bugboto.">
 	<meta name="keywords" content="Google, Wave, Robot, Bugs, Query">
 	<title>Mr. Bugboto</title>
-	<link href="assets/style.css" type="text/css" rel="Stylesheet">
+	<link href="../assets/style.css" type="text/css" rel="Stylesheet">
     </head>
     <body>
 	<div id="header" class="row"><div class="column grid">
-	    <a href="http://mrbugboto.appspot.com"><img src="assets/icon.png" /></a>
+	    <a href="http://mrbugboto.appspot.com"><img src="../assets/icon.png" /></a>
 	    <h3>Querying bug trackers via the Google Wave...Dōmo arigatō!</h3>
         </div></div>
 	<div class="row"><div class="column grid">&nbsp;</div></div>
 	<div class="row section_wrapper">
-	    <div class="column grid title_wrapper"><p>Introduction</p></div>
+	    <div class="column grid title_wrapper"><p>List of supported trackers</p></div>
 	    <div class="column grid">
-		<p>Mr. Bugboto, a robot for <a href="http://wave.google.com">Google Wave</a>, is a query tool for various open source bug trackers.</p>
+		<table style="width:780px;">
+		    <tr><th style="text-align:left;">Trigger</th><th style="text-align:left;">Description</th><th style="text-align:left;">URL</th></tr>"""
+# TABLE FOR TRIGGERS
+table = None
+i = 0
+for x in TRACKERS.keys():
+    if i%2 != 0:
+	tr = '<tr class="odd_bg">'
+    else:
+	tr = '<tr>'
+    if not table:
+	table = tr + '<td class="trigger">%s</td><td>%s</td><td><a href="%s">%s</a></td></tr>' % (x, TRACKERS[x][2], TRACKERS[x][1], TRACKERS[x][1])
+    else:
+	table += tr + '<td class="trigger">%s</td><td>%s</td><td><a href="%s">%s</a></td></tr>' % (x, TRACKERS[x][2], TRACKERS[x][1], TRACKERS[x][1])
+    i += 1
+print table
+# END TABLE FOR TRIGGERS
+print """	</table>
+		<br />
+		<p class="note">To have a new tracker added, please <a href="http://code.google.com/p/mrbugboto/issues/list">file an issue report</a>.</p>
 	    </div>
 	</div>
 	<div class="row"><div class="column grid">&nbsp;</div></div>
 	<div class="row section_wrapper">
-	    <div class="column grid title_wrapper"><p>How to use</p></div>
+	    <div class="column grid title_wrapper"><p>Example</p></div>
 	    <div class="column grid">
+		<p>In a new blip:</p>
 		<ul>
-		    <li>Add <code>mrbugboto@appspot.com</code> to your wave.</li>
-		    <li>Start a conversation in the wave and enter the trigger plug the bug number. Example: <code>!lp#442079</code></li>
+		    <li>Type an exclamation point <code>!</code></li>
+		    <li>Type a trigger such as <code>lp</code>, <code>kde</code>, <code>gnome</code>, or any trigger from the above list</li>
+		    <li>Type a number sign <code>#</code></li>
+		    <li>Type a bug number you want to query</li>
 		</ul>
-		<p><a href="http://mrbugboto.appspot.com/trackers/">List of available triggers</a></p>
-	    </div>
-	</div>
-	<div class="row"><div class="column grid">&nbsp;</div></div>
-	<div class="row section_wrapper">
-	    <div class="column grid title_wrapper"><p>Source code</p></div>
-	    <div class="column grid">
-		<p>Mr. Bugboto is stored at <a href="http://code.google.com/p/mrbugboto">http://code.google.com/p/mrbugboto</a>, and is licensed under the <a href="http://www.gnu.org/licenses/gpl-3.0.txt">GPL Version 3</a>.</p>
-	    </div>
-	</div>
-	<div class="row"><div class="column grid">&nbsp;</div></div>
-	<div class="row section_wrapper">
-	    <div class="column grid title_wrapper"><p>Filing bugs</p></div>
-	    <div class="column grid">
-		<p>To request a new tracker to be added to the robot, or file a bug, do so on the <a href="http://code.google.com/p/mrbugboto/issues/list">robot's issues page</a>. If you experience a crash, please enter the trigger/tracker and bug number that you used that caused the issue. If any text was printed out to a blip from the robot, either take a screenshot and attach it, or copy and paste its output.</p>
+		<p>When it is all put together, it would look something like: <code>!lp#442079</code></p>
+		<p><img src="../assets/mrbugboto.jpg"></p>
 	    </div>
 	</div>
 	<div class="row"><div class="column grid">&nbsp;</div></div>

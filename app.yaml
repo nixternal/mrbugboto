@@ -8,5 +8,7 @@ handlers:
   script: mrbugboto.py
 - url: /assets
   static_dir: assets
+- url: /trackers/.*
+  script: index_trackers.py
 - url: /.*
   script: index.py
