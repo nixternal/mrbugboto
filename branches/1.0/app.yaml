@@ -1,0 +1,14 @@
+application: mrbugboto
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /_wave/.*
+  script: mrbugboto.py
+- url: /assets
+  static_dir: assets
+- url: /trackers/.*
+  script: index_trackers.py
+- url: /.*
+  script: index.py
