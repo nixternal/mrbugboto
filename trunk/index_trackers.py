@@ -27,7 +27,7 @@ print """<!doctype html system "about:legacy-compat">
     </head>
     <body>
 	<div id="header" class="row"><div class="column grid">
-	    <a href="http://mrbugboto.appspot.com"><img src="../assets/icon.png" /></a>
+	    <a href="http://mrbugboto.appspot.com"><img src="../assets/logo.png" /></a>
 	    <h3>Querying bug trackers via the Google Wave...Dōmo arigatō!</h3>
         </div></div>
 	<div class="row"><div class="column grid">&nbsp;</div></div>
