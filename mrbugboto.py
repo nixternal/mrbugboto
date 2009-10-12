@@ -26,15 +26,15 @@ from version import *
 import re
 
 def OnBlipSubmitted(properties, context):
-    blip = context.GetBlipById(properties['blipId'])
-    m = re.match('!(.+)#(.+)', blip.GetDocument().GetText())
+    orig_blip = context.GetBlipById(properties['blipId'])
+    m = re.match('^.*!(.+)#(\d+).*$', orig_blip.GetDocument().GetText())
     try:
 	bug = runTracker(m.group(1), m.group(2))
     except AttributeError:
 	return
-    blip.GetDocument().SetText(" ")
-    blip.GetDocument().AnnotateDocument('style/fontFamily', 'monospace')
-    blip.GetDocument().AppendText('\n\n%s' % bug)
+    new_blip = context.GetRootWavelet().CreateBlip().GetDocument()
+    new_blip.AnnotateDocument('style/fontFamily', 'monospace')
+    new_blip.AppendText('\n%s' % bug)
 
 def OnRobotAdded(properties, context):
     blip = context.GetRootWavelet().CreateBlip().GetDocument()
@@ -42,10 +42,10 @@ def OnRobotAdded(properties, context):
     blip.AppendText('Dōmo arigatō, Mr. Bugboto! Version %s\nPlease review http://mrbugboto.appspot.com for information on how to use this robot.' % VERSION)
 
 if __name__ == '__main__':
-    myRobot = robot.Robot('mrbugboto',
-	    image_url='http://www.mrbugboto.appspot.com/assets/icon.png',
+    myRobot = robot.Robot('mrbugboto-trunk',
+	    image_url='http://www.mrbugboto-trunk.appspot.com/assets/icon.png',
 	    version=VERSION,
-	    profile_url='http://www.mrbugboto.appspot.com')
+	    profile_url='http://www.mrbugboto-trunk.appspot.com')
     myRobot.RegisterHandler(events.BLIP_SUBMITTED, OnBlipSubmitted)
     myRobot.RegisterHandler(events.WAVELET_SELF_ADDED, OnRobotAdded)
     myRobot.Run()
