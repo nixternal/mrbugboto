@@ -26,15 +26,15 @@ from version import *
 import re
 
 def OnBlipSubmitted(properties, context):
-    blip = context.GetBlipById(properties['blipId'])
-    m = re.match('!(.+)#(.+)', blip.GetDocument().GetText())
+    orig_blip = context.GetBlipById(properties['blipId'])
+    m = re.match('^.*!(.+)#(\d+).*$', orig_blip.GetDocument().GetText())
     try:
 	bug = runTracker(m.group(1), m.group(2))
     except AttributeError:
 	return
-    blip.GetDocument().SetText(" ")
-    blip.GetDocument().AnnotateDocument('style/fontFamily', 'monospace')
-    blip.GetDocument().AppendText('\n\n%s' % bug)
+    new_blip = context.GetRootWavelet().CreateBlip().GetDocument()
+    new_blip.AnnotateDocument('style/fontFamily', 'monospace')
+    new_blip.AppendText('\n%s' % bug)
 
 def OnRobotAdded(properties, context):
     blip = context.GetRootWavelet().CreateBlip().GetDocument()

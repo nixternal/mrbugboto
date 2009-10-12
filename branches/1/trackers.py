@@ -102,13 +102,13 @@ class Bugzilla(BugTracker):
 	    bugxml = urllib2.urlopen(url).read()
 	    bugdom = minidom.parseString(bugxml)
 	except Exception, e:
-	    return "<b>Could not parse XML returned by %s:</b> %s" % (url, e)
+	    return "Could not parse XML returned by %s: %s" % (url, e)
 	bug = bugdom.getElementsByTagName('bug')[0]
 	if bug.hasAttribute('error'):
 	    errortxt = bug.getAttribute('error')
 	    if errortxt == 'NotFound':
-		return "<b>Bug not found:</b> %s" % url.replace("xml", "show_bug")
-	    return "<b>Error getting</b> %s <b>bug #</b>%s: %s" % (self.name, id, errortxt)
+		return "Bug not found: %s" % url.replace("xml", "show_bug")
+	    return "Error getting %s bug #%s: %s" % (self.name, id, errortxt)
 	try:
 	    title = _getnodetxt(bug.getElementsByTagName('short_desc')[0])
 	    status = _getnodetxt(bug.getElementsByTagName('bug_status')[0])
@@ -126,7 +126,7 @@ class Bugzilla(BugTracker):
 	    except:
 		pass
 	except Exception, e:
-	    return "<b>Could not parse XML returned by</b> %s <b>bugzilla:</b> %s" % (self.name, e)
+	    return "Could not parse XML returned by %s bugzilla: %s" % (self.name, e)
 	bug = [id, title, product, component, version, status, severity, assignee,
 		None, url.replace('xml', 'show_bug')]
 	html = createOutput(bug)
@@ -169,15 +169,15 @@ class Launchpad(BugTracker):
 	try:
 	    bugpage = urllib2.urlopen('%s/+text' % bug_url)
 	except Exception, e:
-	    return "<b>Unable to open </b>%s<b>. Please try again shortly.</b>" % bug_url
+	    return "Unable to open %s. Please try again shortly." % bug_url
 	if bugpage.geturl().endswith('+login'):
-	    return "<b>This bug is private:</b> %s" % bug_url
+	    return "This bug is private: %s" % bug_url
 	try:
 	    bugdata = bugpage.read()
 	except Exception, e:
 	    if '404' in str(e):
-		return "<b>404 Error:</b> %s" % bug_url
-	    return "<b>Could not parse data returned by %s:</b> %s" % (self.description, e)
+		return "404 Error: %s" % bug_url
+	    return "Could not parse data returned by %s: %s" % (self.description, e)
 	try:
 	    data = bugdata.split('\n\n')
 	    bugdata = data[0]
@@ -189,7 +189,7 @@ class Launchpad(BugTracker):
 	    taskdata.sort(self._sort)
 	    taskdata = taskdata[-1]
 	except Exception, e:
-	    return "<b>Could not parse data returned by %s:</b> %s" % (self.description, e)
+	    return "Could not parse data returned by %s: %s" % (self.description, e)
 	t = taskdata['task']
 	product = t
 	component = None
@@ -206,7 +206,7 @@ def setupTracker(trigger):
     try:
 	tracker = TRACKERS[trigger]
     except KeyError:
-	return "<b>%s</b> is not a registered bug tracker." % trigger
+	return "%s is not a registered bug tracker." % trigger
     url = tracker[1]
     desc = tracker[2]
     tracker = tracker[0]
